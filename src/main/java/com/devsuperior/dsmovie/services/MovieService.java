@@ -1,8 +1,5 @@
 package com.devsuperior.dsmovie.services;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
-
 import com.devsuperior.dsmovie.controllers.MovieController;
 import com.devsuperior.dsmovie.dto.MovieDTO;
 import com.devsuperior.dsmovie.dto.MovieGenreDTO;
@@ -17,6 +14,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Service
 public class MovieService {
@@ -50,7 +50,12 @@ public class MovieService {
     public MovieGenreDTO findByIdMovieGenre(Long id) {
         MovieEntity result = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado"));
-        return new MovieGenreDTO(result);
+        MovieGenreDTO dto = new MovieGenreDTO(result).add(linkTo(methodOn(MovieController.class).findByIdV1(id)).withSelfRel())
+                .add(linkTo(methodOn(MovieController.class).findAllV1(null, Pageable.unpaged())).withRel("All Movies"))
+                .add(linkTo(methodOn(MovieController.class).update(id, null)).withRel("Update Movie"))
+                .add(linkTo(methodOn(MovieController.class).delete(id)).withRel("Delete Movie"));
+
+        return dto;
     }
 
     @Transactional
